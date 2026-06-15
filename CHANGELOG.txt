@@ -1,0 +1,91 @@
+GROUNDCHECK — FULL CHANGELOG
+===========================
+429 SQN Unit Readiness Tracker
+
+v39   (JUN 2026)
+   - Board now opens to a SECTION OVERVIEW — one tile per office (SERC / AFSO / ETO) showing that office's readiness score and key counts at a glance, instead of dropping straight into a wall of equipment tiles.
+   - Click a section tile (or press 1 / 2 / 3) to drill into that office's board; the crest, the ALL SECTIONS breadcrumb, or 0 returns to the overview. A compact section switcher appears while drilled in.
+   - Freed the top of the page: a single UNIT READINESS figure plus Load and Can I Deploy now sit above the tiles. The old View Section dropdown is retired (kept hidden internally as the state-holder).
+   - First major feature built from the new modular src/ source (v38) via `node build.mjs`.
+
+v38   (JUN 2026)
+   - Accessibility: added a keyboard-focus ring (:focus-visible) and aria-labels to the search, memo, email, and toolbar controls so the app is usable with a keyboard and screen reader.
+   - Loading spreadsheets is now queued — dropping or selecting more files while a batch is still parsing queues them instead of running two parses at once, with progress toasts.
+   - Built on v36 (kept all inline documentation). The experimental v37 board was set aside; its two safe wins (the accessibility pass and the file-load queue) were ported here without the comment-stripping that came with it.
+
+v37   (JUN 2026)   [experimental — set aside, superseded by v38]
+   - ETO board now lists every authorisation from the Auth Export, grouped by System with a holder count per auth (collapsible). Tow Driver / Tow IC are flagged when below minimum; the rest are informational for now.
+
+v36   (JUN 2026)
+   - Trends charts now build through one shared helper for all three offices (SERC, AFSO, ETO), removing duplicated card and chart code.
+   - GROUNDCHECK can now load the real ETO Authorization Export from the training app directly (detected automatically) and derive each member's trade, level, and Tow Driver/IC status.
+
+v35   (JUN 2026)
+   - Moved the in-app Guide to a separate GroundCheck Guide.html to shrink the app and speed it up.
+   - Trimmed the in-app changelog to the latest versions — full history now lives in CHANGELOG.txt.
+   - Refactored the Trends code so the three offices share common chart-option and chronic-issue rendering, cutting duplication.
+
+v34   (JUN 2026)
+   - Replaced the embedded squadron crest with a smaller WebP version (same image, sized for display) — cut the file by about 55 KB with no visible change.
+
+v33   (JUN 2026)
+   - Board tiles and Trends charts now both pin via the same SELECT ITEMS mode — while it is on, clicking anywhere on a tile or chart pins it (the star lights up) and the detail popup is suppressed.
+   - Clicking a trend chart (outside select mode) opens a detail popup with an enlarged snapshot plus a table of each snapshot date, whether it met minimum, and a running met/total tally.
+   - Added a PRINT button to the Trends page that prints a report of each item with its current status and how long it has been serviceable or below minimum.
+   - Added a PRINT button to the Overview page that prints the pinned items, their status, and notes in the same report style as the Board.
+   - Overview memo now has a DATE header, a BODY, and an AUTHOR field.
+   - Removed the red and green deploy highlight rings from Board tiles — the Can I Deploy popup already lists the results, so the rings were redundant and clashed with at-min amber tiles.
+
+v32   (JUN 2026)
+   - Trends charts can now be pinned to the Overview tab — hover any trend chart and click the star to add a snapshot of it.
+   - Added a memo editor (Header and Body) at the top of the Overview tab for shared meeting notes that save with the report.
+
+v31   (JUN 2026)
+   - Added a new OVERVIEW tab — a "flavours of the week" pinboard for live team meetings.
+   - Added a SELECT ITEMS mode on the Board page that lets users pin tiles (any SERC, AFSO, or ETO item) to the Overview tab.
+   - Overview cards show each pinned item live status plus an editable notes box and a remove button for tracking actions during meetings.
+   - Pinned items and notes are saved with the report (Save Report / Email) so they persist when the file is shared.
+
+v30   (JUN 2026)
+   - Removed the per-office "Overall Score Trend" chart added in v29 from the Trends page (SERC, AFSO, and ETO) — did not fit alongside the chart grids.
+
+v29   (JUN 2026)
+   - Trends page overhaul: added a SEARCH box and an ALL / BELOW MIN filter to the chart grid for SERC, AFSO, and ETO.
+   - Added an "Overall Score Trend" chart per office, plotting the Readiness/Stock/Qualification Score over time from logged snapshots.
+   - Extended Chronic Issues (below minimum in 4+ snapshots) from SERC-only to AFSO stock items and ETO trades/authorisations.
+   - Serviceability Over Time charts now skip equipment/vehicle types with no logged data in range, matching the existing AFSO/ETO behaviour.
+   - Added per-card snapshot-to-snapshot delta badges (▲/▼) showing the change since the previous logged snapshot.
+   - Trend charts now use the app theme colours (--green/--red/--amber/--bluhi) instead of hardcoded hex values.
+
+v28   (JUN 2026)
+   - Rewrote and reorganized the Guide page into an Operator/Administrator/Developer manual: Purpose, Daily Operation, Key Features, Interface Reference, Troubleshooting, Error Reference, Advanced Administration, Developer Reference, Code Modification Guide, Attribution & Ownership, and Technical Information.
+   - Guide now documents previously-undocumented features: ATGLs, Palletized Seats, Can I Deploy?, Save Report, and Email Report.
+   - Removed redundant "open the file in your browser" instructions from the Guide, since it is read while the application is already running.
+
+v27   (JUN 2026)
+   - Made the version badge (bottom right) clickable, opening this changelog.
+
+v26   (JUN 2026)
+   - Standardized status colours: Deployed chips/popovers and "Information" tiles & badges now all use the same blue.
+
+v25   (JUN 2026)
+   - Increased the printed report table font size and cell padding for better readability.
+
+v24   (JUN 2026)
+   - Fixed stale "Rajdhani / Share Tech Mono" font references left over from the v21 font change (Guide page, print styles, Trends charts).
+
+v23   (JUN 2026)
+   - "Can I Deploy?" button: checks equipment & personnel against deploy minimums and shows a GO / NO-GO verdict, highlighting the relevant tiles.
+
+v22   (JUN 2026)
+   - Loading a spreadsheet that fails to parse now shows a warning toast instead of silently failing.
+
+v21   (JUN 2026)
+   - Removed the Google Fonts dependency so the page works fully offline (now uses Arial Narrow / Consolas).
+
+v20   (JUN 2026)
+   - Keyboard shortcuts 1 / 2 / 3 now mirror the View Section dropdown (focus SERC / AFSO / ETO); added 0 to reset/expand the board view.
+
+v1 – v19
+   Earlier revisions predate this changelog and were not recorded.
+

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GROUNDCHECK — 429 SQN</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+__STYLES__
+</style>
+</head>
+<body>
+
+<div class="drop-overlay" id="drop-overlay">
+  <div class="drop-icon">&#128194;</div>
+  <div class="drop-label">Drop Spreadsheet</div>
+  <div class="drop-sub">Release to load &middot; Multiple files supported</div>
+</div>
+
+<nav>
+  <div class="logo" onclick="showHub()" title="Back to section overview">
+    <img id="crest-img" src="data:image/webp;base64,__CREST_B64__" alt="429 Sqn Bisons" style="width:52px;height:52px;object-fit:contain;flex-shrink:0;">
+    <div>
+      <h1>GROUNDCHECK</h1>
+      <p>429 SQN &middot; UNIT READINESS &middot; C-17 GLOBEMASTER</p>
+    </div>
+  </div>
+  <div class="nav-r">
+    <div class="tabs">
+      <button class="tab on" onclick="gotoPage('board',this)">BOARD</button>
+      <button class="tab" onclick="gotoPage('overview',this)">OVERVIEW</button>
+      <button class="tab" onclick="gotoPage('trends',this)">TRENDS</button>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Switch to day mode" aria-label="Switch between light and dark mode">
+      <span id="theme-icon">&#9728;&#65038;</span><span id="theme-label">DAY MODE</span>
+    </button>
+    <div class="nav-actions" id="nav-actions">
+      <button class="btn pri" id="printbtn" style="display:none" onclick="openPrintModal()">&#9113; Print</button>
+      <button class="btn suc" id="savereportbtn" style="display:none" onclick="saveReport()">&#8681; Save Report</button>
+      <button class="btn act" id="emailreportbtn" style="display:none" onclick="emailReport()">&#9993; Email</button>
+    </div>
+  </div>
+</nav>
+
+<!-- BOARD -->
+<div class="page on" id="page-board">
+  <div class="print-header" id="print-header" style="display:none"></div>
+  <div id="print-body" style="display:none"></div>
+  <div class="banner-label">
+    <button class="crumb drill-only" onclick="showHub()" title="Back to section overview (0)">&#8249; ALL SECTIONS</button>
+    <span id="banner-title">SERC — Equipment &amp; Vehicle Readiness Overview</span>
+    <div class="dsec-switch drill-only" id="dsec-switch">
+      <button data-sec="serc" onclick="setView('serc')">SERC</button>
+      <button data-sec="afso" onclick="setView('afso')">AFSO</button>
+      <button data-sec="eto"  onclick="setView('eto')">ETO</button>
+    </div>
+    <!-- Hidden state-holder: the rest of the board logic still reads/writes #boardsec. -->
+    <select id="boardsec" onchange="onSectionChange()" style="display:none">
+      <option value="serc">SERC</option>
+      <option value="afso">AFSO</option>
+      <option value="eto">ETO</option>
+    </select>
+    <span class="banner-spacer"></span>
+  </div>
+  <!-- SECTION HUB: landing view — one tile per office, drill in by click or 1/2/3 -->
+  <div class="unit-readiness" id="unit-readiness">
+    <div class="ur-left">
+      <span class="ur-lbl">UNIT READINESS</span>
+      <span class="ur-score blu" id="ur-score">&#8212;</span>
+      <span class="ur-sub" id="ur-sub">no data loaded</span>
+    </div>
+    <div class="ur-actions">
+      <button class="btn pri xs" onclick="document.getElementById('fi').click()">&#8593; Load</button>
+      <button class="btn xs" onclick="checkDeployable()" title="Check equipment &amp; personnel against deploy minimums">&#9992; Can I Deploy?</button>
+    </div>
+  </div>
+  <div id="hub-grid"></div>
+  <div class="banner">
+    <div class="bcell"><div class="bnum blu" id="b-total">&#8212;</div><div class="blbl">Tracked Items</div></div>
+    <div class="bcell score-cell">
+      <div class="gauge" id="b-score-gauge"><div class="gauge-inner"><div class="bnum ok" id="b-score">&#8212;</div></div></div>
+      <div class="blbl-wrap"><div class="blbl" id="b-score-lbl">Readiness Score</div></div>
+    </div>
+    <div class="bcell"><div class="bnum ok"  id="b-met">&#8212;</div><div class="blbl">Above Min</div></div>
+    <div class="bcell"><div class="bnum amb" id="b-atmin">&#8212;</div><div class="blbl">At Min</div></div>
+    <div class="bcell"><div class="bnum bad" id="b-notmet">&#8212;</div><div class="blbl">Below Min</div></div>
+    <div class="bcell"><div class="bnum amb" id="b-uns">&#8212;</div><div class="blbl">Unserviceable</div></div>
+    <div class="bcell"><div class="bnum amb" id="b-cal">&#8212;</div><div class="blbl">Cal / Insp</div></div>
+  </div>
+  <div class="data-warn" id="data-warn">
+    <div class="dw-icon">&#9888;</div>
+    <div class="dw-body">
+      <div class="dw-title">Data Warning</div>
+      <ul class="dw-list" id="dw-list"></ul>
+    </div>
+    <button class="dw-close" onclick="document.getElementById('data-warn').classList.remove('vis')" aria-label="Close warning">&#10005;</button>
+  </div>
+  <div class="toolbar">
+    <div class="tgroup">
+      <button class="btn pri" onclick="document.getElementById('fi').click()">&#8593; Load Spreadsheet</button>
+      <input type="file" id="fi" accept=".xlsx,.xlsm" multiple style="display:none">
+      <span class="src-badge" id="src-equip"><span class="src-dot"></span>SERC</span>
+      <span class="src-badge" id="src-liq"><span class="src-dot"></span>AFSO</span>
+      <span class="src-badge" id="src-train"><span class="src-dot"></span>ETO</span>
+    </div>
+    <div class="tgroup">
+      <span class="tlbl">FILTER</span>
+      <div class="filter-group" id="filter-group" style="display:none">
+        <button class="fbtn on" data-f="all"    onclick="setFilter('all',this)">ALL</button>
+        <button class="fbtn"    data-f="warn"   onclick="setFilter('warn',this)">&#9888; BELOW MIN</button>
+        <button class="fbtn"    data-f="atmin"  onclick="setFilter('atmin',this)">AT MIN</button>
+        <button class="fbtn"    data-f="uns"    onclick="setFilter('uns',this)">U/S</button>
+        <button class="fbtn"    data-f="cal"    onclick="setFilter('cal',this)">CAL/INSP</button>
+        <button class="fbtn"    data-f="dep"    onclick="setFilter('dep',this)">DEPLOYED</button>
+      </div>
+    </div>
+    <div class="tgroup">
+      <span class="tlbl">SEARCH</span>
+      <span class="search-wrap">
+        <input type="text" class="search-input" id="search-input" placeholder="Search tiles... ( / )" oninput="onSearchInput()" autocomplete="off" aria-label="Search tiles">
+        <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search (Esc)" style="display:none" aria-label="Clear search">&#10005;</button>
+      </span>
+      <span class="search-count" id="search-count"></span>
+    </div>
+    <div class="tgroup" id="board-tools" style="display:none">
+      <button class="btn xs" onclick="checkDeployable()" title="Check equipment & personnel against deploy minimums">&#9992; Can I Deploy?</button>
+      <button class="btn xs" id="collapse-all-btn" onclick="toggleCollapseAll()" title="Collapse / expand all sections (C)">&#9650; Collapse All</button>
+      <button class="btn xs" onclick="toggleShortcutsHelp()" title="Keyboard shortcuts (?)">&#9000; Keys</button>
+      <button class="btn xs selectmodebtn" id="selectmodebtn" onclick="toggleSelectMode()" title="Pin tiles to the Overview tab">&#9734; Select Items</button>
+    </div>
+    <span class="fstat" id="fstat" style="display:none">No file loaded</span>
+  </div>
+  <div class="no-match" id="no-match" style="display:none">
+    <span>No tiles match your search or filter.</span>
+    <button class="btn xs" onclick="clearSearchAndFilter()">Clear all</button>
+  </div>
+  <div class="slbl collapsible" id="albl" onclick="toggleSection(this)" style="display:none"><span class="slbl-arrow">&#9656;</span><span class="slbl-text">SERC — AMSE Equipment</span><span class="slbl-summary" id="albl-sum"></span><button class="btn suc xs" id="snapbtn" style="display:none" onclick="event.stopPropagation();takeSnap()">&#8595; Log Snapshot</button></div>
+  <div class="grid" id="agrid">
+    <div class="empty"><h3>Awaiting Data</h3><p>Load your Support_Equipment_Readiness spreadsheet.</p></div>
+  </div>
+  <div class="slbl collapsible" id="vlbl" onclick="toggleSection(this)" style="display:none"><span class="slbl-arrow">&#9656;</span><span class="slbl-text">SERC — Vehicles</span><span class="slbl-summary" id="vlbl-sum"></span></div>
+  <div class="grid" id="vgrid"></div>
+  <div class="slbl collapsible" id="atgllbl" onclick="toggleSection(this)" style="display:none"><span class="slbl-arrow">&#9656;</span><span class="slbl-text">SERC &#8212; ATGLs <span class="slbl-sep">/</span> Palletized Seats</span><span class="slbl-summary" id="atgllbl-sum"></span><span class="slbl-summary" id="palletlbl-sum"></span></div>
+  <div class="grid" id="atglgrid"></div>
+  <div id="palletgrid" style="display:none"></div>
+  <div id="palletlbl" style="display:none"></div>
+  <div class="slbl module-start collapsible" id="llbl" onclick="toggleSection(this)" style="display:none"><span class="slbl-arrow">&#9656;</span><span class="slbl-text">AFSO — Fluids</span><span class="slbl-summary" id="llbl-sum"></span><button class="btn suc xs" id="afsosnapbtn" style="display:none" onclick="event.stopPropagation();takeAfsoSnap()">&#8595; Log Snapshot</button></div>
+  <div class="grid" id="lgrid"></div>
+  <div class="slbl collapsible" id="sllbl" onclick="toggleSection(this)" style="display:none"><span class="slbl-arrow">&#9656;</span><span class="slbl-text">AFSO — Sealants</span><span class="slbl-summary" id="sllbl-sum"></span></div>
+  <div class="grid" id="sgrid"></div>
+  <div class="slbl module-start collapsible" id="tlbl" onclick="toggleSection(this)" style="display:none"><span class="slbl-arrow">&#9656;</span><span class="slbl-text">ETO — Training &amp; Qualifications</span><span class="slbl-summary" id="tlbl-sum"></span><button class="btn suc xs" id="etosnapbtn" style="display:none" onclick="event.stopPropagation();takeEtoSnap()">&#8595; Log Snapshot</button></div>
+  <div class="grid" id="tgrid"></div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="page" id="page-overview">
+  <div class="ttrend">
+    <span class="tlbl">OVERVIEW</span>
+    <span class="ov-intro">Pin items from the Board or Trends pages (&#9734; Select Items). Add notes and a summary below, then remove items as they are actioned.</span>
+    <span class="ttrend-tools">
+      <button class="btn xs" onclick="printOverview()" title="Print the Overview as a report">&#9113; Print</button>
+    </span>
+  </div>
+  <div class="ov-memo">
+    <div class="ov-memo-row">
+      <label class="ov-memo-lbl" for="ov-memo-date">Date</label>
+      <input type="text" id="ov-memo-date" class="ov-memo-date" maxlength="40" placeholder="DD MMM YYYY" oninput="_overviewNote.date=this.value" aria-label="Memo date">
+    </div>
+    <textarea id="ov-memo-body" class="ov-memo-body" placeholder="Body &mdash; meeting summary, priorities, decisions..." oninput="_overviewNote.body=this.value" aria-label="Memo body"></textarea>
+    <div class="ov-memo-row">
+      <label class="ov-memo-lbl" for="ov-memo-author">Author</label>
+      <input type="text" id="ov-memo-author" class="ov-memo-author" maxlength="80" placeholder="Name / rank" oninput="_overviewNote.author=this.value" aria-label="Memo author">
+    </div>
+  </div>
+  <div class="cgrid" id="overviewgrid"></div>
+  <div class="empty" id="overview-empty">
+    <h3>Nothing Pinned</h3>
+    <p>Use &#9734; Select Items on the Board to add tiles here.</p>
+  </div>
+</div>
+
+<!-- TRENDS -->
+<div class="page" id="page-trends">
+  <div class="ttrend">
+    <span class="tlbl">SECTION</span>
+    <select id="trendsec" onchange="renderTrends()">
+      <option value="serc">SERC &mdash; Equipment &amp; Vehicles</option>
+      <option value="afso">AFSO &mdash; Fluids &amp; Sealants</option>
+      <option value="eto">ETO &mdash; Training &amp; Qualifications</option>
+    </select>
+    <span class="tlbl">RANGE</span>
+    <select id="rng" onchange="renderTrends()">
+      <option value="6">Last 6 snapshots</option>
+      <option value="12" selected>Last 12 snapshots</option>
+      <option value="24">Last 24 snapshots</option>
+      <option value="0">All time</option>
+    </select>
+    <span class="fstat" id="tstat">No log data loaded</span>
+  </div>
+  <div class="ttrend">
+    <span class="tlbl">SEARCH</span>
+    <span class="search-wrap">
+      <input type="text" class="search-input" id="trend-search" placeholder="Search items..." oninput="onTrendSearchInput()" autocomplete="off" aria-label="Search trends">
+      <button class="search-clear" id="trend-search-clear" onclick="clearTrendSearch()" title="Clear search" style="display:none" aria-label="Clear trend search">&#10005;</button>
+    </span>
+    <button class="fbtn on" data-tf="all" onclick="setTrendFilter('all',this)">ALL</button>
+    <button class="fbtn" data-tf="below" onclick="setTrendFilter('below',this)">&#9888; BELOW MIN</button>
+    <span class="search-count" id="trend-count"></span>
+    <span class="ttrend-tools">
+      <button class="btn xs selectmodebtn" onclick="toggleSelectMode()" title="Pin charts to the Overview tab">&#9734; Select Items</button>
+      <button class="btn xs" onclick="printTrends()" title="Print the current Trends section as a report">&#9113; Print</button>
+    </span>
+  </div>
+  <div class="no-match" id="trend-no-match" style="display:none">
+    <span>No items match your search or filter.</span>
+    <button class="btn xs" onclick="clearTrendFilters()">Clear all</button>
+  </div>
+
+  <div class="trend-section" id="trend-serc">
+    <div class="slbl" id="chrlbl" style="display:none">Chronic Issues</div>
+    <div class="chronic-grid" id="chrgrid"></div>
+    <div class="slbl" id="chtlbl" style="display:none">Serviceability Over Time</div>
+    <div class="cgrid" id="cgrid">
+      <div class="nolog"><strong>No Trend Data</strong>Load a spreadsheet with a <strong>GC Log</strong> tab to see trends.</div>
+    </div>
+    <div class="setup" id="setup">
+      <h3>First-Time Setup &mdash; GC Log Tab</h3>
+      <p>
+        <strong>Step 1.</strong> Create a new tab in the SERC spreadsheet named exactly: <strong>GC Log</strong><br>
+        <strong>Step 2.</strong> Load the spreadsheet on the Board page, then click <strong>Log Snapshot</strong> next to "SERC &mdash; AMSE Equipment".<br>
+        <strong>Step 3.</strong> Paste the clipboard into cell A1 of GC Log &mdash; this sets the header row permanently.<br>
+        <strong>Step 4.</strong> Each cycle: load &rarr; Log Snapshot &rarr; paste the new row below the last in GC Log.<br>
+        <strong>Step 5.</strong> Reload the spreadsheet &mdash; the Trends page populates automatically.
+      </p>
+      <div class="hrow" id="hrow">Load the spreadsheet first to generate the header row.</div>
+    </div>
+  </div>
+
+  <div class="trend-section" id="trend-afso" style="display:none">
+    <div class="slbl" id="afsochrlbl" style="display:none">Chronic Issues</div>
+    <div class="chronic-grid" id="afsochrgrid"></div>
+    <div class="slbl" id="afsotlbl" style="display:none">Stock Levels Over Time</div>
+    <div class="cgrid" id="afsocgrid">
+      <div class="nolog"><strong>No Trend Data</strong>Use the AFSO <strong>&#8595; Log Snapshot</strong> button and paste rows into a <strong>GC Log</strong> tab in the AFSO spreadsheet.</div>
+    </div>
+  </div>
+
+  <div class="trend-section" id="trend-eto" style="display:none">
+    <div class="slbl" id="etochrlbl" style="display:none">Chronic Issues</div>
+    <div class="chronic-grid" id="etochrgrid"></div>
+    <div class="slbl" id="etotlbl" style="display:none">Trade Strength &amp; Authorisations Over Time</div>
+    <div class="cgrid" id="etocgrid">
+      <div class="nolog"><strong>No Trend Data</strong>Use the ETO <strong>&#8595; Log Snapshot</strong> button and paste rows into a <strong>GC Log</strong> tab in the ETO spreadsheet.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- GUIDE -->
+<!-- POPOVER -->
+<div class="pop" id="pop">
+  <div class="pop-hdr">
+    <div class="pop-title" id="ptitle"></div>
+    <div class="pop-hint">ITEM DETAIL</div>
+  </div>
+  <div id="pbody"></div>
+</div>
+
+<!-- PRINT MODAL -->
+<div class="modal-overlay" id="print-modal">
+  <div class="modal">
+    <div class="modal-title">Print Report</div>
+    <p class="modal-sub">Select which section(s) to include in the report:</p>
+    <div class="modal-options" id="print-options"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closePrintModal()">Cancel</button>
+      <button class="btn pri" onclick="confirmPrint()">&#9113; Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- TILE DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal" onclick="if(event.target===this) closeDetailModal()">
+  <div class="modal detail-modal">
+    <div class="modal-title" id="detail-title"></div>
+    <div class="detail-sub" id="detail-sub"></div>
+    <div class="detail-body"><table class="detail-table" id="detail-table"></table></div>
+    <div class="modal-actions detail-actions">
+      <button class="btn" onclick="closeDetailModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TREND DETAIL MODAL -->
+<div class="modal-overlay" id="trenddet-modal" onclick="if(event.target===this) closeTrendDetail()">
+  <div class="modal detail-modal" style="width:640px;">
+    <div class="modal-title" id="trenddet-title"></div>
+    <div class="detail-sub" id="trenddet-sub"></div>
+    <div class="trenddet-imgwrap"><img id="trenddet-img" class="trenddet-img" alt="Trend chart"></div>
+    <div class="detail-body"><table class="detail-table" id="trenddet-table"></table></div>
+    <div class="modal-actions detail-actions">
+      <button class="btn" onclick="closeTrendDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEPLOY READINESS MODAL -->
+<div class="modal-overlay" id="deploy-modal" onclick="if(event.target===this) closeDeployModal()">
+  <div class="modal detail-modal" style="width:480px;">
+    <div class="modal-title">Deploy Readiness Check</div>
+    <div class="deploy-verdict" id="deploy-verdict"></div>
+    <div class="detail-body">
+      <table class="detail-table">
+        <thead><tr><th>Requirement</th><th>Have / Need</th><th>Status</th></tr></thead>
+        <tbody id="deploy-body"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions detail-actions">
+      <button class="btn" onclick="closeDeployModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL REPORT MODAL -->
+<div class="modal-overlay" id="email-modal" onclick="if(event.target===this) closeEmailModal()">
+  <div class="modal detail-modal" style="width:520px;">
+    <div class="modal-title">Email Report</div>
+    <p class="modal-sub">The report file <strong id="email-fname"></strong> has just been downloaded. Enter a recipient and send via your email client, or copy the summary text below.</p>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
+      <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;">To
+        <input type="email" id="email-to" class="search-input" style="width:100%;box-sizing:border-box;" placeholder="name@forces.gc.ca" aria-label="Email recipient">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;">Subject
+        <input type="text" id="email-subject" class="search-input" style="width:100%;box-sizing:border-box;" aria-label="Email subject">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;">Body
+        <textarea id="email-body" class="search-input" style="width:100%;height:220px;box-sizing:border-box;font-family:var(--mono);font-size:11px;resize:vertical;" aria-label="Email body"></textarea>
+      </label>
+    </div>
+    <div class="modal-actions detail-actions">
+      <button class="btn" onclick="closeEmailModal()">Close</button>
+      <button class="btn" id="email-copy-btn" onclick="copyEmailBody()">&#128203; Copy Text</button>
+      <button class="btn pri" onclick="sendEmailReport()">&#9993; Open Email Client</button>
+    </div>
+  </div>
+</div>
+
+<script>
+__SCRIPT__
+</script>
+<div id="toast-host"></div>
+<div id="shortcuts-help" onclick="if(event.target===this)toggleShortcutsHelp()">
+  <div class="sh-card">
+    <h3>Keyboard Shortcuts</h3>
+    <div class="sh-row"><span>Focus search</span><kbd>/</kbd></div>
+    <div class="sh-row"><span>Open SERC / AFSO / ETO section</span><span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></span></div>
+    <div class="sh-row"><span>Back to section overview</span><span><kbd>0</kbd></span></div>
+    <div class="sh-row"><span>Collapse / expand all sections</span><kbd>C</kbd></div>
+    <div class="sh-row"><span>Print report</span><kbd>P</kbd></div>
+    <div class="sh-row"><span>Clear search / close</span><kbd>Esc</kbd></div>
+    <div class="sh-row"><span>Show this help</span><kbd>?</kbd></div>
+    <button class="btn xs" onclick="toggleShortcutsHelp()" style="margin-top:16px;width:100%;">Close</button>
+  </div>
+</div>
+<div class="version-badge" onclick="openChangelogModal()" title="View changelog">GROUNDCHECK __VERSION__ &middot; <span class="va">ALPHA</span></div>
+
+<!-- CHANGELOG MODAL -->
+<div class="modal-overlay" id="changelog-modal" onclick="if(event.target===this) closeChangelogModal()">
+  <div class="modal detail-modal" style="width:560px;">
+    <div class="modal-title">Changelog</div>
+    <div class="detail-body" id="changelog-body"></div>
+    <div class="modal-actions detail-actions">
+      <button class="btn" onclick="closeChangelogModal()">Close</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(sed -n '1779,1815p' GROUNDCHECK_429SQN_v13-beautify.html)",
+      "Bash(sed -n '925,936p' GROUNDCHECK_429SQN_v13-beautify.html)",
+      "Bash(awk 'NR>=910 && NR<=3212{ print length\\($0\\), NR }' \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\Groundcheck\\\\GROUNDCHECK_429SQN_v14-2.html\")",
+      "Bash(awk 'NR>=910 && NR<=3212{s+=length\\($0\\)} END{print s, NR}' \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\Groundcheck\\\\GROUNDCHECK_429SQN_v14-2.html\")",
+      "Bash(powershell -Command \"\\(Get-Content 'C:\\\\Users\\\\Administrator\\\\Desktop\\\\Groundcheck\\\\GROUNDCHECK_429SQN_v14-2.html' -Raw\\) -replace [regex]::Escape\\('_trainData.filter\\(function\\(d\\){ return auth===''Tow Driver'' ? d.towD : d.towIC; }\\).length'\\), 'authCount\\(auth\\)' | Set-Content -Encoding utf8 'C:\\\\Users\\\\Administrator\\\\Desktop\\\\Groundcheck\\\\GROUNDCHECK_429SQN_v14-2.html' -NoNewline\")",
+      "Bash(xxd)",
+      "Bash(python3 -c ' *)",
+      "Bash(awk -F: '$1>2980 && $1<3040')",
+      "Bash(awk -F: '$1<3040')",
+      "Bash(awk 'NR>=1045 && NR<=1058' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=60 && NR<=64' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=272 && NR<=276' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=46 && NR<=58' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=558 && NR<=565' GROUNDCHECK_429SQN_v14-2.html)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(awk 'NR>=1473 && NR<=1540' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=1576 && NR<=1631' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=130 && NR<=145' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=941 && NR<=1130' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=1130 && NR<=1300' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=1300 && NR<=1470' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=1640 && NR<=1810' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=1810 && NR<=2030' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=2029 && NR<=2310' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=2325 && NR<=2570' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=2998 && NR<=3170' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=3170 && NR<=3412' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=2619 && NR<=2760' GROUNDCHECK_429SQN_v14-2.html)",
+      "Bash(awk 'NR>=1539 && NR<=1573' GROUNDCHECK_429SQN_v14-2.html)",
+      "PowerShell(Copy-Item \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\Groundcheck\\\\GROUNDCHECK_429SQN_v17.html\" \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\Groundcheck\\\\GROUNDCHECK_429SQN_v18.html\")",
+      "PowerShell(\"v18 created\")",
+      "Bash(python -c ' *)",
+      "Bash(node --check _ds_check.js)",
+      "Bash(node --check _v36_check.js)"
+    ]
+  }
+}

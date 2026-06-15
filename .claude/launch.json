@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "groundcheck",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "-p", "8123", "-c-1"],
+      "port": 8123
+    },
+    {
+      "name": "finance",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Administrator/Desktop/FinanceTracker/server.js"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}
